@@ -53,11 +53,11 @@ Try swapping pins around so DHT22 not on D4
 #endif
 
 // the pin that the DHT22 sensor is attached to
-#define DHT_SENSOR_PIN D4
+#define DHT_SENSOR_PIN D3
 
 // the pins used for SDS011 serial communication
 #define PARTICULATE_RX_PIN D2
-#define PARTICULATE_TX_PIN D3
+#define PARTICULATE_TX_PIN D4
 
 /*
   the data we're going to send to TTN
