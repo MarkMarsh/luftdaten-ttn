@@ -46,6 +46,11 @@
 // see the file ttn-keys.h.tpl in the repo
 #include "ttn-keys.h"
 
+// check the library has been set to the EU frequency
+#if CFG_eu868 != 1
+#pragma error "You must edit project_config/lmic_project_config.h in the library (yes really) to set the frequency"
+#endif
+
 // provide callbacks for the OTAA join to fetch the keys
 void os_getArtEui (u1_t* buf) { memcpy_P(buf, APPEUI, 8); }
 void os_getDevEui (u1_t* buf) { memcpy_P(buf, DEVEUI, 8); }
