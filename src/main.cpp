@@ -68,34 +68,36 @@ const lmic_pinmap lmic_pins = {
 
 static uint8_t dataTX[8];
 static int16_t * dataTX16 = (int16_t *) dataTX;
-// Q&D encoder - i needs to be word aligned
-void encodeFloat(float f, int i) { dataTX16[i/2] = ((int16_t) (f * 100)); }
 
-void do_send(osjob_t* j)  {
-    reading rdg;
-    // check to see if there's data to read
-    if(particulates_read(rdg) && temp_humid_read(rdg))  {
-        DEBUG_MSG("Sending packet\n");
-        // Check if there is not a current TX/RX job running
-        if (LMIC.opmode & OP_TXRXPEND) {
-            DEBUG_MSG("OP_TXRXPEND, not sending\n");
-        } else {
+// Q&D encoder - i needs to be word aligned
+void encodeFloat(float f, int i, int multiplier) { dataTX16[i/2] = ((int16_t) (f * multiplier)); }
+
+const int POLL_INTERVAL = 1;
+
+void lmicCallback(osjob_t* j)  {
+    DEBUG_MSG("Starting lmicCallback()\n");
+
+    // Don't poll the sensors if there's a current TX/RX job running
+    if (LMIC.opmode & OP_TXRXPEND) {
+        DEBUG_MSG("OP_TXRXPEND, not sending\n");
+    }
+    else  {
+        // check to see if there's data to read and send
+        // - this is effectively loop()
+        reading rdg;
+        if(particulates_read(rdg) && temp_humid_read(rdg))  {
             // encode data
-            encodeFloat(rdg.temperature, 0);
-            encodeFloat(rdg.humidity, 2);
-            encodeFloat(rdg.pm25, 4);
-            encodeFloat(rdg.pm10, 6);
+            encodeFloat(rdg.temperature, 0, 100);
+            encodeFloat(rdg.humidity, 2, 100);
+            encodeFloat(rdg.pm25, 4, 10);
+            encodeFloat(rdg.pm10, 6, 10);
             // Prepare upstream data transmission at the next possible time.
             LMIC_setTxData2(1, dataTX, sizeof(dataTX), 0);
             DEBUG_MSG("Packet queued\n");
         }
-        // Next TX is scheduled after TX_COMPLETE event.
     }
-    else  {
-        DEBUG_MSG("Initiate next poll\n");
-        os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(SENSOR_POLL_INTERVAL), do_send);
-
-    }
+    // always initiate another callback
+    os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(POLL_INTERVAL), lmicCallback);
 }
 
 /* TTN decoder javascript is:
@@ -107,8 +109,8 @@ function Decoder(bytes, port) {
   if (port === 1) {
     decoded.temperature = (bytes[0] + (bytes[1] * 256)) / 100.0;
     decoded.humidity = (bytes[2] + (bytes[3] * 256)) / 100.0;
-    decoded.pm25 = (bytes[4] + (bytes[5] * 256)) / 100.0;
-    decoded.pm10 = (bytes[6] + (bytes[7] * 256)) / 100.0;
+    decoded.pm25 = (bytes[4] + (bytes[5] * 256)) / 10.0;
+    decoded.pm10 = (bytes[6] + (bytes[7] * 256)) / 10.0;
   }
   return decoded;
 }
@@ -134,7 +136,6 @@ void onEvent (ev_t ev) {
             break;
         case EV_JOINED:
             DEBUG_MSG("EV_JOINED\n");
-
             // Disable link check validation (automatically enabled
             // during join, but not supported by TTN at this time).
             LMIC_setLinkCheckMode(0);
@@ -154,10 +155,8 @@ void onEvent (ev_t ev) {
             if (LMIC.txrxFlags & TXRX_ACK)
               DEBUG_MSG("Received ack\n");
             if (LMIC.dataLen) {
-              DEBUG_MSG("Received %d bytes of payload\n", LMIC.dataLen);
+              DEBUG_MSG("Received %d bytes of payload : ", LMIC.dataLen);
             }
-            // Schedule next transmission
-            os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(SENSOR_POLL_INTERVAL), do_send);
             break;
         case EV_LOST_TSYNC:
             DEBUG_MSG("EV_LOST_TSYNC\n");
@@ -198,11 +197,12 @@ void setup() {
 
     // LMIC init
     os_init();
+
     // Reset the MAC state. Session and pending data transfers will be discarded.
     LMIC_reset();
 
     // Start job (sending automatically starts OTAA too)
-    do_send(&sendjob);
+    lmicCallback(&sendjob);
 }
 
 void loop() {

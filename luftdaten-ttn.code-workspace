@@ -22,6 +22,10 @@
 		{
 			"name": "ModeMCU-DHT22-TEST",
 			"path": "C:\\Users\\Mark.Marsh\\Documents\\PlatformIO\\Projects\\ModeMCU-DHT22-TEST"
+		},
+		{
+			"name": "airrohr-firmware",
+			"path": "C:\\Users\\Mark.Marsh\\Documents\\PlatformIO\\Projects\\sensors-software\\airrohr-firmware"
 		}
 	],
 	"settings": {

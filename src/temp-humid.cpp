@@ -37,6 +37,6 @@ boolean temp_humid_read(reading &rdg) {
     DEBUG_MSG("Failed to read from DHT sensor :-( - temp = %f, humid = %f\n", rdg.temperature, rdg.humidity);
     return false;
   }
-  DEBUG_MSG("Temperature = %f, Humidity = %f\n", rdg.temperature, rdg.humidity);
+  //DEBUG_MSG("Temperature = %f, Humidity = %f\n", rdg.temperature, rdg.humidity);
   return true;
 }
