@@ -20,30 +20,45 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-
-#include "SdsDustSensor.h"
+#include <SdsDustSensor.h>
 #include "luftdaten-ttn.h"
 #include "particulates.h"
 
-SdsDustSensor sds(PARTICULATE_RX_PIN, PARTICULATE_TX_PIN);
-
-void particulates_setup() {
-  sds.begin();
-
-  DEBUG_MSG(sds.queryFirmwareVersion().toString().c_str()); DEBUG_MSG("\n"); // prints firmware version
-  DEBUG_MSG(sds.setActiveReportingMode().toString().c_str()); DEBUG_MSG("\n"); // ensures sensor is in 'active' reporting mode
-  DEBUG_MSG(sds.setCustomWorkingPeriod(SAMPLE_PERIOD).toString().c_str()); DEBUG_MSG("\n"); // sensor sends data every 3 minutes
-}
-
-boolean particulates_read(reading &rdg) {
-  PmResult pm = sds.readPm();
-  if (pm.isOk()) {
-    DEBUG_MSG("%lu : PM2.5 = %f, PM10 = %f                                              \n", millis() / 1000, pm.pm25, pm.pm10);
-    rdg.pm25 = pm.pm25;
-    rdg.pm10 = pm.pm10;    
-    return true;
+#ifdef SIMULATE_PARTICULATES
+  void particulates_setup() {
+    DEBUG_MSG("Simulating particulate readings\n");
   }
-  // we expect reads to fail as the polling frequency is higher than the sample frequency
-  // DEBUG_MSG("%lu : Could not read values from sensor, reason: %s\r", millis() / 1000, pm.statusToString().c_str());
-  return false;
-}
+  
+  boolean particulates_read(reading &rdg) {
+      static int ctr = 0;
+      if(ctr++ % 60 == 0)  {  	// return valid data once every 60 polls
+        rdg.pm25 = 2.5;
+        rdg.pm10 = 10.0;    
+        return true;
+      }
+    return false;
+  }
+#else
+  SdsDustSensor sds(SDS011_RXPIN, SDS011_TXPIN);
+
+  void particulates_setup() {
+    sds.begin();
+
+    DEBUG_MSG(sds.queryFirmwareVersion().toString().c_str()); DEBUG_MSG("\n"); // prints firmware version
+    DEBUG_MSG(sds.setActiveReportingMode().toString().c_str()); DEBUG_MSG("\n"); // ensures sensor is in 'active' reporting mode
+    DEBUG_MSG(sds.setCustomWorkingPeriod(SAMPLE_PERIOD).toString().c_str()); DEBUG_MSG("\n"); // sensor sends data every 3 minutes
+  }
+
+  boolean particulates_read(reading &rdg) {
+    PmResult pm = sds.readPm();
+    if (pm.isOk()) {
+      DEBUG_MSG("%lu : PM2.5 = %f, PM10 = %f                                              \n", millis() / 1000, pm.pm25, pm.pm10);
+      rdg.pm25 = pm.pm25;
+      rdg.pm10 = pm.pm10;    
+      return true;
+    }
+    // we expect reads to fail as the polling frequency is higher than the sample frequency
+    // DEBUG_MSG("%lu : Could not read values from sensor, reason: %s\r", millis() / 1000, pm.statusToString().c_str());
+    return false;
+  }
+#endif

@@ -20,23 +20,34 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include <DHT.h>
 #include "luftdaten-ttn.h"
 
-DHT dht(DHT_SENSOR_PIN, DHT22);
-
-void temp_humid_setup() {
-  dht.begin();
-}
-
-boolean temp_humid_read(reading &rdg) {
-  rdg.humidity = dht.readHumidity();
-  rdg.temperature = dht.readTemperature();
-
-  if (isnan(rdg.humidity) || isnan(rdg.temperature)) {
-    DEBUG_MSG("Failed to read from DHT sensor :-( - temp = %f, humid = %f\n", rdg.temperature, rdg.humidity);
-    return false;
+#ifdef SIMULATE_DHT22
+  void temp_humid_setup() {
   }
-  //DEBUG_MSG("Temperature = %f, Humidity = %f\n", rdg.temperature, rdg.humidity);
-  return true;
-}
+  bool temp_humid_read(reading &rdg) {
+    rdg.humidity = 45;
+    rdg.temperature = 21;
+    return true;
+  }
+#else
+  #include <DHT.h>
+
+  DHT dht(DHT_SENSOR_PIN, DHT22);
+
+  void temp_humid_setup() {
+    dht.begin();
+  }
+
+  boolean temp_humid_read(reading &rdg) {
+    rdg.humidity = dht.readHumidity();
+    rdg.temperature = dht.readTemperature();
+
+    if (isnan(rdg.humidity) || isnan(rdg.temperature)) {
+      DEBUG_MSG("Failed to read from DHT sensor :-( - temp = %f, humid = %f\n", rdg.temperature, rdg.humidity);
+      return false;
+    }
+    //DEBUG_MSG("Temperature = %f, Humidity = %f\n", rdg.temperature, rdg.humidity);
+    return true;
+  }
+#endif

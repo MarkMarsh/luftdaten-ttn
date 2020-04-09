@@ -28,5 +28,5 @@ void particulates_setup();
 // fill in the particulates part of the reading
 // returns:
 //  false - sensor not ready to read - not necessarily a problem
-boolean particulates_read(reading &rdg);
+bool particulates_read(reading &rdg);
 

@@ -59,12 +59,22 @@ void os_getDevKey (u1_t* buf) {  memcpy_P(buf, APPKEY, 16); }
 static osjob_t sendjob;
 
 // Pin mapping
+#ifdef SAULMOD
 const lmic_pinmap lmic_pins = {
     .nss = 15,
     .rxtx = LMIC_UNUSED_PIN,
     .rst = LMIC_UNUSED_PIN,
     .dio = {5, 16, LMIC_UNUSED_PIN},
 };
+#endif
+#ifdef TTGO_TBEAM
+const lmic_pinmap lmic_pins = {
+    .nss = NSS_GPIO,
+    .rxtx = LMIC_UNUSED_PIN,
+    .rst = RESET_GPIO,
+    .dio = {DIO0_GPIO, DIO1_GPIO, DIO2_GPIO},
+};
+#endif
 
 static uint8_t dataTX[8];
 static int16_t * dataTX16 = (int16_t *) dataTX;
@@ -181,7 +191,7 @@ void onEvent (ev_t ev) {
 }
 
 void setup() {
-    Serial.begin(115200);
+    SETUP_DEBUG_SERIAL();
     DEBUG_MSG("Starting\n");
 
     // setup the sensors

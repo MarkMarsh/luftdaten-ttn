@@ -34,30 +34,76 @@ Try swapping pins around so DHT22 not on D4
 
 #pragma once
 
-// We can operate in two modes, with a serial port for the SDS011 on D2. D3 or 
-// with the i2c bus on D2, D3 
-#define MODE_SERIAL 1
-#define MODE_I2C 2
+#include <Arduino.h>
 
-#define MODE MODE_SERIAL
+#ifdef TTGO_TBEAM
+#define PROGMEM
+#define memcpy_P memcpy
+
+// nicked from TTNMapper...
+// -----------------------------------------------------------------------------
+// General
+// -----------------------------------------------------------------------------
+
+#define I2C_SDA            21
+#define I2C_SCL            22
+#define LED_PIN            25
+#define RELAIS_PIN         14    // confirmed pin 14 works with board
+
+// the pins used for SDS011 serial communication
+#define SDS011_RXPIN 39  // Connect to SDS011 TX
+#define SDS011_TXPIN 36  // Connect to SDS011 RX
+
+
+// -----------------------------------------------------------------------------
+// OLED
+// -----------------------------------------------------------------------------
+
+#define SSD1306_ADDRESS 0x3C
+#define BMP280_ADDRESS 0x76
+
+// -----------------------------------------------------------------------------
+// LoRa SPI
+// -----------------------------------------------------------------------------
+
+#define SCK_GPIO        5
+#define MISO_GPIO       19
+#define MOSI_GPIO       27
+#define NSS_GPIO        18
+#define RESET_GPIO      23
+#define DIO0_GPIO       26
+#define DIO1_GPIO       33
+#define DIO2_GPIO       32
+
+// -----------------------------------------------------------------------------
+// AXP192 (Rev1-specific options)
+// -----------------------------------------------------------------------------
+
+#define LORA_POWER_CTRL_CH    2
+#define PMU_IRQ               35
+
+#endif
+
+#ifdef SAULMOD
+// the pins used for SDS011 serial communication
+#define SDS011_RXPIN D2  // Connect to SDS011 TX
+#define SDS011_TXPIN D4  // Connect to SDS011 RX
+// the pin that the DHT22 sensor is attached to
+#define DHT_SENSOR_PIN D3
+#endif
 
 // comment out to remove debug output to the USB Serial port
 #define DEBUG_SERIAL
 
 #ifdef DEBUG_SERIAL
-#define SETUP_DEBUG_SERIAL() Serial.begin(115200); DEBUG_MSG("\n\n")
+#define SETUP_DEBUG_SERIAL() Serial.begin(115200); Serial.print("\n\n")
 #define DEBUG_MSG(...) Serial.printf( __VA_ARGS__ )
 #else
 #define SETUP_DEBUG_SERIAL()
 #define DEBUG_MSG(...)
 #endif
 
-// the pin that the DHT22 sensor is attached to
-#define DHT_SENSOR_PIN D3
 
-// the pins used for SDS011 serial communication
-#define PARTICULATE_RX_PIN D2
-#define PARTICULATE_TX_PIN D4
 
 /*
   the data we're going to send to TTN

@@ -26,4 +26,4 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 void temp_humid_setup();
 
 // fill in temperature and humidity data
-boolean temp_humid_read(reading &rdg);
+bool temp_humid_read(reading &rdg);
