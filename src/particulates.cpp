@@ -39,18 +39,26 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     return false;
   }
 #else
-  SdsDustSensor sds(SDS011_RXPIN, SDS011_TXPIN);
 
+  SdsDustSensor *sds = NULL;
+  
   void particulates_setup() {
-    sds.begin();
+    #if defined(TTGO_TBEAM)
+      Serial2.begin(9600, SERIAL_8N1, SDS011_RXPIN, SDS011_TXPIN);
+      sds = new SdsDustSensor(Serial2);
+    #endif
+    #if defined(SAULMOD)
+    sds = new SdsDustSensor(SDS011_RXPIN, SDS011_TXPIN);
+    sds->begin();
+    #endif
 
-    DEBUG_MSG(sds.queryFirmwareVersion().toString().c_str()); DEBUG_MSG("\n"); // prints firmware version
-    DEBUG_MSG(sds.setActiveReportingMode().toString().c_str()); DEBUG_MSG("\n"); // ensures sensor is in 'active' reporting mode
-    DEBUG_MSG(sds.setCustomWorkingPeriod(SAMPLE_PERIOD).toString().c_str()); DEBUG_MSG("\n"); // sensor sends data every 3 minutes
+    DEBUG_MSG(sds->queryFirmwareVersion().toString().c_str()); DEBUG_MSG("\n"); // prints firmware version
+    DEBUG_MSG(sds->setActiveReportingMode().toString().c_str()); DEBUG_MSG("\n"); // ensures sensor is in 'active' reporting mode
+    DEBUG_MSG(sds->setCustomWorkingPeriod(SAMPLE_PERIOD).toString().c_str()); DEBUG_MSG("\n"); // sensor sends data every 3 minutes
   }
 
   boolean particulates_read(reading &rdg) {
-    PmResult pm = sds.readPm();
+    PmResult pm = sds->readPm();
     if (pm.isOk()) {
       DEBUG_MSG("%lu : PM2.5 = %f, PM10 = %f                                              \n", millis() / 1000, pm.pm25, pm.pm10);
       rdg.pm25 = pm.pm25;

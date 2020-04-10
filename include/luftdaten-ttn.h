@@ -51,8 +51,8 @@ Try swapping pins around so DHT22 not on D4
 #define RELAIS_PIN         14    // confirmed pin 14 works with board
 
 // the pins used for SDS011 serial communication
-#define SDS011_RXPIN 39  // Connect to SDS011 TX
-#define SDS011_TXPIN 36  // Connect to SDS011 RX
+#define SDS011_RXPIN 13 // 34  // Connect to SDS011 TX
+#define SDS011_TXPIN 14 // 36  // Connect to SDS011 RX
 
 
 // -----------------------------------------------------------------------------
