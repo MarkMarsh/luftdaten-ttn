@@ -85,7 +85,7 @@ void encodeFloat(float f, int i, int multiplier) { dataTX16[i/2] = ((int16_t) (f
 const int POLL_INTERVAL = 1;
 
 void lmicCallback(osjob_t* j)  {
-    DEBUG_MSG("Starting lmicCallback()\n");
+    //DEBUG_MSG("Starting lmicCallback()\n");
 
     // Don't poll the sensors if there's a current TX/RX job running
     if (LMIC.opmode & OP_TXRXPEND) {
@@ -184,8 +184,14 @@ void onEvent (ev_t ev) {
         case EV_LINK_ALIVE:
             DEBUG_MSG("EV_LINK_ALIVE\n");
             break;
+        case EV_TXSTART:
+            DEBUG_MSG("EV_TXSTART\n");
+            break;
+        case EV_JOIN_TXCOMPLETE:
+            DEBUG_MSG("EV_JOIN_TXCOMPLETE\n");
+            break;
          default:
-            DEBUG_MSG("Unknown event\n");
+            DEBUG_MSG("Unknown event %d\n", ev);
             break;
     }
 }
